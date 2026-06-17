@@ -28,12 +28,16 @@ if ! pacman-key --list-keys >/dev/null 2>&1; then
     pacman-key --populate archlinuxarm
 fi
 
-echo "[chroot-common] mirrorlist: yedek mirror'lar ekleniyor"
-cat >> /etc/pacman.d/mirrorlist <<'EOF'
+echo "[chroot-common] mirrorlist: hızlı mirror'larla değiştiriliyor"
+cat > /etc/pacman.d/mirrorlist <<'EOF'
 Server = http://de.mirror.archlinuxarm.org/$arch/$repo
 Server = http://fr.mirror.archlinuxarm.org/$arch/$repo
 Server = http://nj.us.mirror.archlinuxarm.org/$arch/$repo
+Server = http://mirror.archlinuxarm.org/$arch/$repo
 EOF
+
+echo "[chroot-common] eski .part dosyaları temizleniyor (stale partial downloads)"
+rm -f /var/cache/pacman/pkg/*.part
 
 echo "[chroot-common] pacman -Syu"
 pacman -Syu --noconfirm

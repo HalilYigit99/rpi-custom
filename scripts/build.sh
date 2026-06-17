@@ -255,6 +255,11 @@ step1_create_image() {
 
     LOOP_DEV=$(losetup -fP --show "$IMG")
     echo "  loop device: $LOOP_DEV"
+    # Partition node'larının (/dev/loopXp1, p2) udev tarafından oluşturulmasını bekle
+    udevadm settle --timeout=10
+    # Paranoya: node yoksa partprobe ile zorla
+    [[ -b "${LOOP_DEV}p1" ]] || partprobe "$LOOP_DEV"
+    udevadm settle --timeout=5
 
     mkfs.vfat -F32 -n BOOT "${LOOP_DEV}p1"
     mkfs.ext4 -L ROOTFS "${LOOP_DEV}p2"
@@ -305,12 +310,16 @@ step3_nspawn_install() {
     cp -rv "$SCRIPTS_DIR/ananicy-rules" "$MNT/root/ananicy-rules"
 
     # Profil-özel pacman cache: master cache'den hard-link ile seed et.
-    # İki paralel build aynı .part dosyasına yazmaz — race condition yok.
+    # Profil-özel cache: master + diğer profil cache'lerinden hard-link seed.
+    # Stale .part dosyaları kesinlikle temizleniyor (HTTP 416 / PGP hatası önlemek için).
     mkdir -p "$PACMAN_PROFILE_CACHE" "$MNT/var/cache/pacman/pkg"
-    if compgen -G "$PACMAN_CACHE_DIR/*.pkg.tar.*" > /dev/null 2>&1; then
-        cp -ln "$PACMAN_CACHE_DIR/"*.pkg.tar.* "$PACMAN_PROFILE_CACHE/" 2>/dev/null || true
-        echo "  pacman cache seed: $(ls "$PACMAN_PROFILE_CACHE"/*.pkg.tar.* 2>/dev/null | wc -l) paket hard-link edildi"
-    fi
+    rm -f "$PACMAN_PROFILE_CACHE"/*.part
+    for _src in "$PACMAN_CACHE_DIR" "$BUILD_DIR/cache/pacman-pkg-desktop" "$BUILD_DIR/cache/pacman-pkg-server"; do
+        [[ "$_src" == "$PACMAN_PROFILE_CACHE" ]] && continue
+        compgen -G "$_src/*.pkg.tar.*" > /dev/null 2>&1 && \
+            cp -ln "$_src/"*.pkg.tar.* "$PACMAN_PROFILE_CACHE/" 2>/dev/null || true
+    done
+    echo "  pacman cache seed: $(ls "$PACMAN_PROFILE_CACHE"/*.pkg.tar.* 2>/dev/null | wc -l) paket"
     mount --bind "$PACMAN_PROFILE_CACHE" "$MNT/var/cache/pacman/pkg"
 
     systemd-nspawn \
