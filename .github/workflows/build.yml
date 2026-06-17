@@ -1,6 +1,6 @@
 name: Pi5 Custom Image Build
 
-on:
+"on":
   # Her Pazar 03:00 UTC — haftalık güncel paket garantisi
   schedule:
     - cron: '0 3 * * 0'
