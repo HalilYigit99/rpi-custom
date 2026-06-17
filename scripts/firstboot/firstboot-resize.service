@@ -1,0 +1,13 @@
+[Unit]
+Description=rpi-custom: rootfs'i SD kart boyutuna büyüt (first boot)
+After=local-fs.target
+Before=firstboot-swapfile.service
+ConditionPathExists=!/var/lib/rpi-custom/firstboot-resize.done
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/firstboot-resize.sh
+
+[Install]
+WantedBy=multi-user.target

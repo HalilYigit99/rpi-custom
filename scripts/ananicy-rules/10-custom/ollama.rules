@@ -1,0 +1,7 @@
+# Ollama (sunucu + inference runner aynı 'ollama' binary/comm adıyla çalışıyor)
+# cpu85: toplam CPU'nun %85'i ile sınırlı (CPUQuota) — boşta tam hız, ama
+# desktop/KRDP için her zaman ~%15 CPU payı garanti ediliyor. nice/ioclass
+# değiştirilmiyor (BG_CPUIO gibi nice=19 vermek inference'ı her zaman
+# yavaşlatırdı).
+{ "name": "ollama", "cgroup": "cpu85" }
+{ "name": "llama-server", "cgroup": "cpu85" }

@@ -1,0 +1,39 @@
+# Build çalışma dizini — img, mnt, geçici dosyalar
+build/desktop/
+build/server/
+build/cache/prewarm-rootfs/
+build/*.img
+build/*.log
+
+# İndirilen büyük dosyalar (build sırasında otomatik indirilir)
+build/cache/ArchLinuxARM-aarch64-latest.tar.gz
+build/cache/ollama-linux-arm64.tar.zst
+build/cache/hailort-*-arm64.deb
+build/cache/hailort-src-*.tar.gz
+build/cache/hailo-ko-*.tar.zst
+build/cache/pacman-pkg/
+build/cache/pacman-pkg-*/
+build/cache/.prewarm-done
+build/cache/.prewarm.lock
+
+# Üretilen imajlar ve log'lar
+output/
+
+# Arşivlenmiş eski script
+scripts/chroot-install.sh.bak
+
+# Eski script yedekleri
+scripts-pios-debian.bak/
+scripts/*.bak
+
+# Kök dizindeki geçici log dosyaları
+*.log
+local_repo.json
+
+# Notlar (kişisel, repoya dahil değil)
+notes/
+
+# OS/editör dosyaları
+.DS_Store
+*.swp
+*~

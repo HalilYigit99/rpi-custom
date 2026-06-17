@@ -1,0 +1,28 @@
+--- a/src/PlasmaScreencastV1Session.cpp
++++ b/src/PlasmaScreencastV1Session.cpp
+@@ -163,6 +163,7 @@
+     , d(std::make_unique<Private>())
+ {
+     d->remoteInterface = new FakeInput();
++    d->remoteInterface->authenticate(QStringLiteral("krdpserver"), QString());
+ }
+ 
+ PlasmaScreencastV1Session::~PlasmaScreencastV1Session()
+@@ -175,7 +176,7 @@
+ {
+     if (auto vm = virtualMonitor()) {
+         d->request = d->m_screencasting.createVirtualMonitorStream(vm->name, vm->size, vm->dpr, Screencasting::Metadata);
+-    } else if (!activeStream()) {
++    } else {
+         d->request = d->m_screencasting.createWorkspaceStream(Screencasting::Metadata);
+     }
+     connect(d->request, &ScreencastingStream::failed, this, &PlasmaScreencastV1Session::error);
+@@ -225,7 +226,7 @@
+         auto me = std::static_pointer_cast<QMouseEvent>(event);
+         auto position = me->position();
+         auto logicalPosition = QPointF{(position.x() / size().width()) * logicalSize().width(), (position.y() / size().height()) * logicalSize().height()};
+-        d->remoteInterface->pointer_motion_absolute(logicalPosition.x(), logicalPosition.y());
++        d->remoteInterface->pointer_motion_absolute(wl_fixed_from_double(logicalPosition.x()), wl_fixed_from_double(logicalPosition.y()));
+         break;
+     }
+     case QEvent::Wheel: {

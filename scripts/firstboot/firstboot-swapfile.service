@@ -1,0 +1,13 @@
+[Unit]
+Description=rpi-custom: dinamik swapfile oluştur (first boot)
+After=firstboot-resize.service
+Requires=firstboot-resize.service
+ConditionPathExists=!/var/lib/rpi-custom/firstboot-swapfile.done
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/firstboot-swapfile.sh
+
+[Install]
+WantedBy=multi-user.target
