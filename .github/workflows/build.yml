@@ -40,11 +40,12 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
             systemd-container libarchive-tools parted dosfstools e2fsprogs \
-            xz-utils qemu-user-static binutils curl
+            xz-utils qemu-user-static binfmt-support binutils curl
 
       - name: aarch64 binfmt kaydı
         run: |
-          sudo update-binfmts --enable qemu-aarch64
+          sudo systemctl restart systemd-binfmt 2>/dev/null || \
+            sudo update-binfmts --enable qemu-aarch64
           ls /proc/sys/fs/binfmt_misc/qemu-aarch64
 
       - name: Cache — ALARM rootfs tarball
@@ -131,11 +132,12 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
             systemd-container libarchive-tools parted dosfstools e2fsprogs \
-            xz-utils qemu-user-static binutils curl
+            xz-utils qemu-user-static binfmt-support binutils curl
 
       - name: aarch64 binfmt kaydı
         run: |
-          sudo update-binfmts --enable qemu-aarch64
+          sudo systemctl restart systemd-binfmt 2>/dev/null || \
+            sudo update-binfmts --enable qemu-aarch64
           ls /proc/sys/fs/binfmt_misc/qemu-aarch64
 
       - name: Cache — ALARM rootfs tarball
