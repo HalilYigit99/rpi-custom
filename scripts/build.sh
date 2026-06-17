@@ -41,10 +41,11 @@ ALARM_TARBALL="$BUILD_DIR/cache/ArchLinuxARM-aarch64-latest.tar.gz"
 OLLAMA_SRC="/var/lib/ollama"
 OLLAMA_TARBALL="$BUILD_DIR/cache/ollama-linux-arm64.tar.zst"
 
-# Shared pacman cache — her iki profil aynı cache dizinini kullanır.
-# pacman package download atomic'tir (temp→rename), paralel nspawn'lar için güvenli.
-# Pre-warm adımı (step0) tüm paketleri önceden indirir, paralel build'ler sadece okur.
+# Pre-warm master cache — step0 tüm paketleri buraya indirir (tek seferlik).
 PACMAN_CACHE_DIR="$BUILD_DIR/cache/pacman-pkg"
+# Profil bazlı cache — her build kendi dizinini kullanır.
+# step3 başında master cache'den hard-link ile seed edilir; parallel write conflict olmaz.
+PACMAN_PROFILE_CACHE="$BUILD_DIR/cache/pacman-pkg-${PROFILE}"
 
 OUTPUT_NAME="pi5-arch-${PROFILE}-$(date +%Y%m%d).img"
 OUTPUT_IMG="$OUTPUT_DIR/$OUTPUT_NAME"
@@ -303,10 +304,14 @@ step3_nspawn_install() {
     # ananicy-cpp kuralları: her iki profilde de ollama cpu85 cgroup gerekiyor.
     cp -rv "$SCRIPTS_DIR/ananicy-rules" "$MNT/root/ananicy-rules"
 
-    # Shared pacman cache bind-mount — paketler önceden indirildi (step0),
-    # yalnızca okuma yapılıyor, iki nspawn aynı anda güvenle kullanabilir.
-    mkdir -p "$PACMAN_CACHE_DIR" "$MNT/var/cache/pacman/pkg"
-    mount --bind "$PACMAN_CACHE_DIR" "$MNT/var/cache/pacman/pkg"
+    # Profil-özel pacman cache: master cache'den hard-link ile seed et.
+    # İki paralel build aynı .part dosyasına yazmaz — race condition yok.
+    mkdir -p "$PACMAN_PROFILE_CACHE" "$MNT/var/cache/pacman/pkg"
+    if compgen -G "$PACMAN_CACHE_DIR/*.pkg.tar.*" > /dev/null 2>&1; then
+        cp -ln "$PACMAN_CACHE_DIR/"*.pkg.tar.* "$PACMAN_PROFILE_CACHE/" 2>/dev/null || true
+        echo "  pacman cache seed: $(ls "$PACMAN_PROFILE_CACHE"/*.pkg.tar.* 2>/dev/null | wc -l) paket hard-link edildi"
+    fi
+    mount --bind "$PACMAN_PROFILE_CACHE" "$MNT/var/cache/pacman/pkg"
 
     systemd-nspawn \
         --quiet \
