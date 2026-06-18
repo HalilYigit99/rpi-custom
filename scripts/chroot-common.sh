@@ -126,23 +126,18 @@ echo "[chroot-common] cmdline.txt: root=/dev/mmcblk0p2 -> root=LABEL=ROOTFS"
 sed -i 's#root=/dev/mmcblk0p2#root=LABEL=ROOTFS#' /boot/cmdline.txt
 
 # ---------------------------------------------------------------------------
-# config.txt: PCIe 3.0 + overclock (2.8GHz CPU / 900MHz GPU)
+# config.txt: PCIe 3.0
 # ---------------------------------------------------------------------------
 # PCIe 3.0: BCM2712 destekliyor, varsayılan 2.0 — Hailo AI HAT+ throughput için
 # gerekli (model yükleme + inference ~2x daha hızlı).
-# Overclock: 2.8GHz/900MHz Pi5'te fiziksel stres testinde doğrulandı (+50mV).
-# 3.0GHz/1.0GHz denenip kararsız bulundu (RCU stall + GPU flip_done zaman aşımı).
-echo "[chroot-common] config.txt: PCIe 3.0 + overclock (2.8GHz/900MHz/+50mV)"
+# Overclock kaldırıldı: güç kaynağına bağlı instabilite riski var.
+# İsteyenler config.txt'e manuel ekleyebilir: arm_freq=2800 gpu_freq=900 over_voltage_delta=50000
+echo "[chroot-common] config.txt: PCIe 3.0 (overclock dahil değil)"
 cat >> /boot/config.txt <<'EOF'
 
 # --- rpi-custom ---
 # PCIe 3.0 (Hailo AI HAT+ ve NVMe için ~2x bant genişliği)
 dtparam=pciex1_gen=3
-
-# Overclock: 2.8GHz CPU / 900MHz GPU (+50mV) — Pi5 stres testinde doğrulandı
-arm_freq=2800
-gpu_freq=900
-over_voltage_delta=50000
 EOF
 
 # ---------------------------------------------------------------------------
